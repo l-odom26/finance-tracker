@@ -1,5 +1,6 @@
 package com.example.demo.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 
 @Entity
@@ -11,6 +12,7 @@ data class User(
     @Column(unique = true, nullable = false)
     val email: String = "",
 
+    @JsonIgnore
     @Column(nullable = false)
     var password: String = "",
 

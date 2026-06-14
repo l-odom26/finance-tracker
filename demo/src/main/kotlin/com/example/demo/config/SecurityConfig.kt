@@ -16,6 +16,7 @@ class SecurityConfig {
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers("/api/auth/**").permitAll()
+                auth.requestMatchers("/api/transactions/**").permitAll()
                 auth.anyRequest().authenticated()
             }
         return http.build()

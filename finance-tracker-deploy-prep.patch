@@ -1,0 +1,94 @@
+diff --git a/demo/gradlew b/demo/gradlew
+old mode 100644
+new mode 100755
+diff --git a/demo/src/main/kotlin/com/example/demo/config/JwtFilter.kt b/demo/src/main/kotlin/com/example/demo/config/JwtFilter.kt
+index b900be0..950a3b3 100644
+--- a/demo/src/main/kotlin/com/example/demo/config/JwtFilter.kt
++++ b/demo/src/main/kotlin/com/example/demo/config/JwtFilter.kt
+@@ -6,17 +6,19 @@ import io.jsonwebtoken.security.Keys
+ import jakarta.servlet.FilterChain
+ import jakarta.servlet.http.HttpServletRequest
+ import jakarta.servlet.http.HttpServletResponse
++import org.springframework.beans.factory.annotation.Value
+ import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+ import org.springframework.security.core.context.SecurityContextHolder
+ import org.springframework.stereotype.Component
+ import org.springframework.web.filter.OncePerRequestFilter
+ 
+ @Component
+-class JwtFilter(private val userRepository: UserRepository) : OncePerRequestFilter() {
++class JwtFilter(
++    private val userRepository: UserRepository,
++    @Value("\${jwt.secret}") private val jwtSecret: String
++) : OncePerRequestFilter() {
+ 
+-    private val secretKey = Keys.hmacShaKeyFor(
+-        "your-super-secret-key-that-is-long-enough-32bytes".toByteArray()
+-    )
++    private val secretKey = Keys.hmacShaKeyFor(jwtSecret.toByteArray())
+ 
+     override fun doFilterInternal(
+         request: HttpServletRequest,
+diff --git a/demo/src/main/kotlin/com/example/demo/config/SecurityConfig.kt b/demo/src/main/kotlin/com/example/demo/config/SecurityConfig.kt
+index 4d72ba3..d94d071 100644
+--- a/demo/src/main/kotlin/com/example/demo/config/SecurityConfig.kt
++++ b/demo/src/main/kotlin/com/example/demo/config/SecurityConfig.kt
+@@ -13,6 +13,7 @@ class SecurityConfig(private val jwtFilter: JwtFilter) {
+     @Bean
+     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+         http
++            .cors { }
+             .csrf { it.disable() }
+             .httpBasic { it.disable() }  // add this line
+             .formLogin { it.disable() }  // add this line
+diff --git a/demo/src/main/kotlin/com/example/demo/service/AuthService.kt b/demo/src/main/kotlin/com/example/demo/service/AuthService.kt
+index c92ade4..ed46b8f 100644
+--- a/demo/src/main/kotlin/com/example/demo/service/AuthService.kt
++++ b/demo/src/main/kotlin/com/example/demo/service/AuthService.kt
+@@ -4,17 +4,19 @@ import com.example.demo.model.User
+ import com.example.demo.repository.UserRepository
+ import io.jsonwebtoken.Jwts
+ import io.jsonwebtoken.security.Keys
++import org.springframework.beans.factory.annotation.Value
+ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+ import org.springframework.stereotype.Service
+ import java.util.Date
+ 
+ @Service
+-class AuthService(private val userRepository: UserRepository) {
++class AuthService(
++    private val userRepository: UserRepository,
++    @Value("\${jwt.secret}") private val jwtSecret: String
++) {
+ 
+     private val passwordEncoder = BCryptPasswordEncoder()
+-    private val secretKey = Keys.hmacShaKeyFor(
+-        "your-super-secret-key-that-is-long-enough-32bytes".toByteArray()
+-    )
++    private val secretKey = Keys.hmacShaKeyFor(jwtSecret.toByteArray())
+ 
+     fun register(email: String, password: String, name: String): String {
+         if (userRepository.findByEmail(email).isPresent)
+diff --git a/demo/src/main/resources/application.properties b/demo/src/main/resources/application.properties
+index 97458f2..08858c3 100644
+--- a/demo/src/main/resources/application.properties
++++ b/demo/src/main/resources/application.properties
+@@ -1,9 +1,12 @@
+ spring.application.name=demo
+-spring.datasource.url=jdbc:postgresql://localhost:5432/finance_tracker
+-spring.datasource.username=postgres
+-spring.datasource.password=Trombone42307!
++spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/finance_tracker}
++spring.datasource.username=${SPRING_DATASOURCE_USERNAME:postgres}
++spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
+ 
+ spring.jpa.hibernate.ddl-auto=update
+ spring.jpa.show-sql=true
+ spring.jpa.properties.hibernate.format_sql=true
+-spring.security.user.password=disabled
+\ No newline at end of file
++spring.security.user.password=disabled
++
++jwt.secret=${JWT_SECRET:your-super-secret-key-that-is-long-enough-32bytes}
++frontend.origin=${FRONTEND_ORIGIN:http://localhost:5173}
+\ No newline at end of file

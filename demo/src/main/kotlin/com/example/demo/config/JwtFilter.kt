@@ -6,17 +6,19 @@ import io.jsonwebtoken.security.Keys
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
 @Component
-class JwtFilter(private val userRepository: UserRepository) : OncePerRequestFilter() {
+class JwtFilter(
+    private val userRepository: UserRepository,
+    @Value("\${jwt.secret}") private val jwtSecret: String
+) : OncePerRequestFilter() {
 
-    private val secretKey = Keys.hmacShaKeyFor(
-        "your-super-secret-key-that-is-long-enough-32bytes".toByteArray()
-    )
+    private val secretKey = Keys.hmacShaKeyFor(jwtSecret.toByteArray())
 
     override fun doFilterInternal(
         request: HttpServletRequest,

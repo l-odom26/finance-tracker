@@ -13,6 +13,7 @@ class SecurityConfig(private val jwtFilter: JwtFilter) {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
+            .cors { }
             .csrf { it.disable() }
             .httpBasic { it.disable() }  // add this line
             .formLogin { it.disable() }  // add this line

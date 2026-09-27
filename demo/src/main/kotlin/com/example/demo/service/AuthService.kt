@@ -4,17 +4,19 @@ import com.example.demo.model.User
 import com.example.demo.repository.UserRepository
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import java.util.Date
 
 @Service
-class AuthService(private val userRepository: UserRepository) {
+class AuthService(
+    private val userRepository: UserRepository,
+    @Value("\${jwt.secret}") private val jwtSecret: String
+) {
 
     private val passwordEncoder = BCryptPasswordEncoder()
-    private val secretKey = Keys.hmacShaKeyFor(
-        "your-super-secret-key-that-is-long-enough-32bytes".toByteArray()
-    )
+    private val secretKey = Keys.hmacShaKeyFor(jwtSecret.toByteArray())
 
     fun register(email: String, password: String, name: String): String {
         if (userRepository.findByEmail(email).isPresent)
